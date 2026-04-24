@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>vn.edu.congvan</groupId>
+        <artifactId>congvan-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>congvan-app</artifactId>
+    <name>Congvan :: Application (Assembly)</name>
+    <description>Spring Boot executable aggregate tất cả modules nghiệp vụ.</description>
+
+    <dependencies>
+        <!-- Tất cả module nghiệp vụ -->
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-auth</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-masterdata</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-inbound</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-outbound</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-workflow</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-ocr</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-signature</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-search</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-audit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-integration</artifactId>
+        </dependency>
+
+        <!-- Infra runtime -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>congvan-app</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>vn.edu.congvan.app.CongvanApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,22 @@
+# Override dành cho dev — tắt build backend/frontend/ocr nặng khi chỉ muốn
+# chạy hạ tầng (postgres/redis/rabbitmq/minio) và dev trên host.
+#
+# Dùng:
+#   # Chỉ chạy hạ tầng:
+#   docker compose -f docker-compose.yml -f docker-compose.override.yml up -d \
+#       postgres redis rabbitmq minio minio-setup
+#   # Rồi chạy backend/frontend/ocr trên host:
+#   (cd backend && mvn spring-boot:run -pl congvan-app)
+#   (cd frontend && pnpm dev)
+#   (cd ocr-service && uvicorn app.main:app --reload)
+
+services:
+  backend:
+    # Không nâng image ở dev — comment nếu muốn build trong container.
+    profiles: ["full"]
+
+  frontend:
+    profiles: ["full"]
+
+  ocr-service:
+    profiles: ["full"]

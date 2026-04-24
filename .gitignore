@@ -1,0 +1,113 @@
+# ========================
+# OS & Editor
+# ========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Claude Code workspace config (per-developer, không commit)
+.claude/
+
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.local
+.env.*.local
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+certs/*.p12
+certs/*.pfx
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ========================
+# Java / Maven / Spring Boot
+# ========================
+backend/**/target/
+backend/**/.mvn/
+!backend/.mvn/wrapper/maven-wrapper.properties
+backend/**/*.class
+backend/**/*.jar
+backend/**/*.war
+backend/**/*.ear
+backend/**/hs_err_pid*
+backend/**/replay_pid*
+backend/HELP.md
+
+# ========================
+# Node / Next.js / Frontend
+# ========================
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/coverage/
+frontend/.turbo/
+frontend/next-env.d.ts
+frontend/.env*.local
+frontend/.vercel
+
+# ========================
+# Python / FastAPI / OCR
+# ========================
+ocr-service/__pycache__/
+ocr-service/**/__pycache__/
+ocr-service/*.py[cod]
+ocr-service/*.so
+ocr-service/.venv/
+ocr-service/venv/
+ocr-service/env/
+ocr-service/.pytest_cache/
+ocr-service/.mypy_cache/
+ocr-service/.ruff_cache/
+ocr-service/.coverage
+ocr-service/htmlcov/
+ocr-service/dist/
+ocr-service/build/
+ocr-service/*.egg-info/
+ocr-service/.ipynb_checkpoints/
+
+# ========================
+# Docker
+# ========================
+docker/data/
+docker/volumes/
+
+# ========================
+# Infra / storage (local)
+# ========================
+data/
+storage/
+uploads/
+tmp/
+
+# ========================
+# Test coverage
+# ========================
+**/coverage/
+**/.nyc_output/
+**/jacoco.exec

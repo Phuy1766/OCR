@@ -1,0 +1,16 @@
+spring:
+  flyway:
+    enabled: true
+  data:
+    redis:
+      repositories:
+        enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+app:
+  jwt:
+    private-key-path: classpath:certs/test/jwt-private.pem
+    public-key-path: classpath:certs/test/jwt-public.pem

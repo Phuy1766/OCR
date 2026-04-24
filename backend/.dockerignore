@@ -1,0 +1,10 @@
+**/target/
+**/.mvn/
+!**/.mvn/wrapper/maven-wrapper.properties
+**/*.class
+**/*.jar
+**/*.log
+.git
+.idea
+.vscode
+*.iml

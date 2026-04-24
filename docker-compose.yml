@@ -1,0 +1,202 @@
+name: congvan-system
+
+services:
+  # ============ Hạ tầng ============
+  postgres:
+    image: postgres:16-alpine
+    container_name: congvan-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-congvan}
+      POSTGRES_USER: ${POSTGRES_USER:-congvan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-congvan_dev_password_change_me}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-congvan} -d ${POSTGRES_DB:-congvan}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [congvan]
+
+  redis:
+    image: redis:7-alpine
+    container_name: congvan-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass "${REDIS_PASSWORD:-}"
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks: [congvan]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: congvan-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-congvan}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-congvan_dev_password_change_me}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks: [congvan]
+
+  minio:
+    image: minio/minio:RELEASE.2024-07-10T18-41-49Z
+    container_name: congvan-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-congvan_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-congvan_dev_password_change_me}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks: [congvan]
+
+  minio-setup:
+    image: minio/mc:RELEASE.2024-07-08T20-59-24Z
+    container_name: congvan-minio-setup
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-congvan_admin} ${MINIO_ROOT_PASSWORD:-congvan_dev_password_change_me} &&
+      mc mb --ignore-existing local/${MINIO_BUCKET_DOCUMENTS:-congvan-documents} &&
+      mc mb --ignore-existing local/${MINIO_BUCKET_SIGNED:-congvan-signed} &&
+      mc anonymous set none local/${MINIO_BUCKET_DOCUMENTS:-congvan-documents} &&
+      mc anonymous set none local/${MINIO_BUCKET_SIGNED:-congvan-signed} &&
+      echo 'MinIO buckets ready';
+      "
+    networks: [congvan]
+    restart: "no"
+
+  # ============ Services ============
+  ocr-service:
+    build:
+      context: ./ocr-service
+      dockerfile: Dockerfile
+    container_name: congvan-ocr
+    restart: unless-stopped
+    environment:
+      OCR_SERVICE_PORT: 5000
+      OCR_INTERNAL_API_KEY: ${OCR_INTERNAL_API_KEY:-change_me_internal_shared_secret}
+      OCR_PADDLE_LANG: ${OCR_PADDLE_LANG:-vi}
+    ports:
+      - "${OCR_SERVICE_PORT:-5000}:5000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks: [congvan]
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: congvan-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-congvan}
+      POSTGRES_USER: ${POSTGRES_USER:-congvan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-congvan_dev_password_change_me}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER:-congvan}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-congvan_dev_password_change_me}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-congvan_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-congvan_dev_password_change_me}
+      OCR_SERVICE_HOST: ocr-service
+      OCR_SERVICE_PORT: 5000
+      OCR_INTERNAL_API_KEY: ${OCR_INTERNAL_API_KEY:-change_me_internal_shared_secret}
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75"
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    networks: [congvan]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: congvan-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080/api}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks: [congvan]
+
+networks:
+  congvan:
+    name: congvan-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  minio_data:
