@@ -2,6 +2,8 @@ package vn.edu.congvan.app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Entry point của hệ thống quản lý công văn.
@@ -11,6 +13,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * search, audit, integration.
  */
 @SpringBootApplication(scanBasePackages = "vn.edu.congvan")
+@EntityScan("vn.edu.congvan")
+@EnableJpaRepositories("vn.edu.congvan")
 public class CongvanApplication {
 
     public static void main(String[] args) {

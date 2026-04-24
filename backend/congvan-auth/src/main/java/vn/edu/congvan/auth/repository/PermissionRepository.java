@@ -1,0 +1,9 @@
+package vn.edu.congvan.auth.repository;
+
+import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import vn.edu.congvan.auth.entity.PermissionEntity;
+
+@Repository
+public interface PermissionRepository extends JpaRepository<PermissionEntity, UUID> {}

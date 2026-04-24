@@ -25,6 +25,7 @@ Thumbs.db
 .env.local
 .env.*.local
 !.env.example
+# Keys / certs — .gitignore default ON, whitelist test keys riêng
 *.pem
 *.key
 *.p12
@@ -32,6 +33,10 @@ Thumbs.db
 secrets/
 certs/*.p12
 certs/*.pfx
+backend/certs/
+# Cho phép commit test keys (dùng bởi Testcontainers).
+!backend/congvan-app/src/test/resources/certs/test/
+!backend/congvan-app/src/test/resources/certs/test/*.pem
 
 # ========================
 # Logs
@@ -70,6 +75,7 @@ frontend/.turbo/
 frontend/next-env.d.ts
 frontend/.env*.local
 frontend/.vercel
+frontend/tsconfig.tsbuildinfo
 
 # ========================
 # Python / FastAPI / OCR

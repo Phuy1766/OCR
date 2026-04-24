@@ -52,9 +52,18 @@ springdoc:
 app:
   timezone: Asia/Ho_Chi_Minh
   locale: vi_VN
+  security:
+    cors:
+      allowed-origins: ${APP_CORS_ORIGINS:http://localhost:3000}
+    cookie:
+      secure: ${APP_COOKIE_SECURE:false}
+      same-site: ${APP_COOKIE_SAME_SITE:Strict}
+  bootstrap:
+    admin-password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:}
   jwt:
     access-token-ttl-minutes: ${JWT_ACCESS_TOKEN_TTL_MINUTES:30}
     refresh-token-ttl-days: ${JWT_REFRESH_TOKEN_TTL_DAYS:7}
+    issuer: ${JWT_ISSUER:congvan-system}
     private-key-path: ${JWT_PRIVATE_KEY_PATH:classpath:certs/jwt-private.pem}
     public-key-path: ${JWT_PUBLIC_KEY_PATH:classpath:certs/jwt-public.pem}
   storage:

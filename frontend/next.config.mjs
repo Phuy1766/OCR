@@ -3,9 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   output: 'standalone',
-  experimental: {
-    typedRoutes: true,
-  },
+  // typedRoutes tắt ở Phase 1 để hỗ trợ dynamic redirect từ query param.
+  // Có thể bật lại ở phase sau nếu rà hết callsites.
   async headers() {
     return [
       {
