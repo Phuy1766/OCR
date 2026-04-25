@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.congvan.auth.security.AuthPrincipal;
 import vn.edu.congvan.auth.service.AuditLogger;
 import vn.edu.congvan.common.exception.BusinessException;
+import vn.edu.congvan.common.signature.SignatureGate;
 import vn.edu.congvan.inbound.dto.DocumentFileDto;
 import vn.edu.congvan.inbound.entity.DocumentDirection;
 import vn.edu.congvan.inbound.entity.DocumentEntity;
@@ -76,6 +78,8 @@ public class OutboundDocumentService {
     private final AuditLogger audit;
     private final OutboxRecorder outbox;
     private final ObjectMapper json;
+    /** Phase 7+: optional gate kiểm tra 2 chữ ký số trước khi issue. */
+    private final Optional<SignatureGate> signatureGate;
 
     @Transactional
     public OutboundDocumentDto createDraft(
@@ -299,7 +303,10 @@ public class OutboundDocumentService {
     public OutboundDocumentDto issue(
             UUID documentId, IssueRequest req, AuthPrincipal actor, String actorIp) {
         DocumentEntity d = loadOutbound(documentId);
-        if (d.getStatus() != DocumentStatus.APPROVED) {
+        boolean issueable = d.getStatus() == DocumentStatus.APPROVED
+                || d.getStatus() == DocumentStatus.PENDING_SIGN
+                || d.getStatus() == DocumentStatus.SIGNED;
+        if (!issueable) {
             throw new BusinessException(
                     "OUTBOUND_NOT_APPROVED",
                     "Chỉ phát hành được sau khi đã duyệt cấp đơn vị.");
@@ -307,6 +314,14 @@ public class OutboundDocumentService {
         if (d.getApprovedVersionId() == null) {
             throw new IllegalStateException("Document APPROVED nhưng không có approved_version_id");
         }
+        // BR-06/12: nếu signature module có, yêu cầu đủ 2 chữ ký trước khi issue.
+        signatureGate.ifPresent(gate -> {
+            if (!gate.hasBothSignatures(documentId, d.getApprovedVersionId())) {
+                throw new BusinessException(
+                        "BR_06_SIGNATURES_REQUIRED",
+                        "VB điện tử bắt buộc 2 chữ ký số (cá nhân + cơ quan) trước khi phát hành.");
+            }
+        });
 
         DocumentBookEntity book = books.findById(req.bookId())
                 .orElseThrow(() -> new BusinessException(

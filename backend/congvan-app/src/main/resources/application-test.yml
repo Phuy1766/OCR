@@ -34,3 +34,7 @@ app:
   outbox:
     # Disable outbox publisher mặc định — test cần outbox sẽ override.
     enabled: false
+  signature:
+    # Disable signature gate mặc định — Phase 4 test không có chữ ký số.
+    # SignatureFlowIntegrationTest override = true qua @DynamicPropertySource.
+    gate-enabled: false

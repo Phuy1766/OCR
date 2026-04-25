@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DocumentStatusBadge } from '@/components/document-status-badge';
 import { VersionTimeline } from '@/components/version-timeline';
+import { SignaturePanel } from '@/components/signature-panel';
 import {
   useApproveDept,
   useApproveLeader,
@@ -123,6 +124,8 @@ export default function OutboundDetailPage() {
           <VersionTimeline versions={data.versions} />
         </CardContent>
       </Card>
+
+      {data.approvedVersionId && <SignaturePanel documentId={id} />}
 
       {data.approvals.length > 0 && (
         <Card>
