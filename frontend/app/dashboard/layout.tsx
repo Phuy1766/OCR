@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ClipboardList, Inbox, Loader2, LogOut, Send, Settings } from 'lucide-react';
+import { ClipboardList, Inbox, Loader2, LogOut, Search, Send, Settings } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useLogout, useMe } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -65,6 +65,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
               >
                 <ClipboardList className="h-3.5 w-3.5" /> Công việc
+              </Link>
+            )}
+            {currentUser.permissions.includes('SEARCH:READ') && (
+              <Link
+                href="/dashboard/search"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <Search className="h-3.5 w-3.5" /> Tìm kiếm
               </Link>
             )}
             {currentUser.permissions.includes('MASTERDATA:MANAGE') && (
