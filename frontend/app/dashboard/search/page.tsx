@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles } from 'lucide-react';
+import { Search, Sparkles, SearchX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { DocumentStatusBadge } from '@/components/document-status-badge';
+import { EmptyState } from '@/components/empty-state';
 import { useSearchDocuments } from '@/hooks/use-search';
 import type { DocumentStatus } from '@/types/document';
 
@@ -96,7 +98,13 @@ export default function SearchPage() {
         </CardContent>
       </Card>
 
-      {isLoading && <div className="text-sm text-muted-foreground">Đang tìm…</div>}
+      {isLoading && (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+      )}
 
       {data && (
         <Card>
@@ -114,7 +122,11 @@ export default function SearchPage() {
           </CardHeader>
           <CardContent>
             {data.hits.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Không có kết quả phù hợp.</p>
+              <EmptyState
+                icon={SearchX}
+                title="Không có kết quả phù hợp"
+                description="Thử thay đổi từ khóa, mở rộng khoảng thời gian hoặc bỏ bớt bộ lọc."
+              />
             ) : (
               <ul className="space-y-3">
                 {data.hits.map((h) => {

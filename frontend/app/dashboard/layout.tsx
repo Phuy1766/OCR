@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useLogout, useMe } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { NotificationBell } from '@/components/notification-bell';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -85,6 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <NotificationBell />
             <div className="text-right text-xs leading-tight">
               <div className="font-medium">{currentUser.fullName}</div>

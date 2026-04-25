@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search } from 'lucide-react';
+import { Inbox, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,13 +15,25 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { DocumentStatusBadge } from '@/components/document-status-badge';
+import { EmptyState } from '@/components/empty-state';
+import { Pagination } from '@/components/pagination';
 import { useInboundDocuments } from '@/hooks/use-inbound';
+
+const PAGE_SIZE = 20;
 
 export default function InboundListPage() {
   const [q, setQ] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const { data, isLoading } = useInboundDocuments({ q: q || undefined, page: 0, size: 50 });
+  const [page, setPage] = useState(0);
+  const { data, isLoading } = useInboundDocuments({
+    q: q || undefined,
+    page,
+    size: PAGE_SIZE,
+  });
+
+  const total = data?.totalElements ?? 0;
 
   return (
     <Card>
@@ -42,6 +54,7 @@ export default function InboundListPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            setPage(0);
             setQ(searchInput);
           }}
           className="flex gap-2"
@@ -57,59 +70,79 @@ export default function InboundListPage() {
         </form>
 
         {isLoading ? (
-          <div className="text-sm text-muted-foreground">Đang tải…</div>
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : data?.content?.length === 0 ? (
+          <EmptyState
+            icon={Inbox}
+            title="Chưa có công văn đến"
+            description={q ? 'Không có kết quả phù hợp với từ khóa.' : 'Bắt đầu bằng cách tiếp nhận công văn đến mới.'}
+            action={
+              !q && (
+                <Button asChild size="sm">
+                  <Link href="/dashboard/inbound/new">
+                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Tiếp nhận mới
+                  </Link>
+                </Button>
+              )
+            }
+          />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-24">Số CV</TableHead>
-                <TableHead>Trích yếu</TableHead>
-                <TableHead>Số/Ký hiệu gốc</TableHead>
-                <TableHead>Ngày đến</TableHead>
-                <TableHead>Trạng thái</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data?.content?.map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {d.bookNumber ? `${d.bookNumber}/${d.bookYear}` : '—'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-md">
-                    <Link
-                      href={`/dashboard/inbound/${d.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {d.subject}
-                    </Link>
-                    {d.externalIssuer && (
-                      <div className="text-xs text-muted-foreground">
-                        Từ: {d.externalIssuer}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {d.externalReferenceNumber ?? '—'}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {d.receivedDate ?? '—'}
-                  </TableCell>
-                  <TableCell>
-                    <DocumentStatusBadge status={d.status} />
-                  </TableCell>
-                </TableRow>
-              ))}
-              {data?.content?.length === 0 && (
+          <>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    Chưa có công văn đến.
-                  </TableCell>
+                  <TableHead className="w-24">Số CV</TableHead>
+                  <TableHead>Trích yếu</TableHead>
+                  <TableHead>Số/Ký hiệu gốc</TableHead>
+                  <TableHead>Ngày đến</TableHead>
+                  <TableHead>Trạng thái</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {data?.content?.map((d) => (
+                  <TableRow key={d.id}>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {d.bookNumber ? `${d.bookNumber}/${d.bookYear}` : '—'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-md">
+                      <Link
+                        href={`/dashboard/inbound/${d.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {d.subject}
+                      </Link>
+                      {d.externalIssuer && (
+                        <div className="text-xs text-muted-foreground">
+                          Từ: {d.externalIssuer}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {d.externalReferenceNumber ?? '—'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {d.receivedDate ?? '—'}
+                    </TableCell>
+                    <TableCell>
+                      <DocumentStatusBadge status={d.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <Pagination
+              page={page}
+              size={PAGE_SIZE}
+              totalElements={total}
+              onPageChange={setPage}
+            />
+          </>
         )}
       </CardContent>
     </Card>

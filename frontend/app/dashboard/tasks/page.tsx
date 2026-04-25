@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,6 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/empty-state';
 import { useCompleteAssignment, useMyAssignments } from '@/hooks/use-workflow';
 import { ApiCallError } from '@/lib/api-client';
 import type { AssignmentStatus } from '@/types/workflow';
@@ -109,7 +111,21 @@ export default function TasksPage() {
         </div>
 
         {isLoading ? (
-          <div className="text-sm text-muted-foreground">Đang tải…</div>
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : data?.content?.length === 0 ? (
+          <EmptyState
+            icon={ClipboardList}
+            title={filter === 'ACTIVE' ? 'Không có việc đang chờ' : 'Không có công việc nào'}
+            description={
+              filter === 'ACTIVE'
+                ? 'Bạn đã hoàn tất tất cả các công việc được phân công.'
+                : undefined
+            }
+          />
         ) : (
           <Table>
             <TableHeader>
@@ -153,13 +169,6 @@ export default function TasksPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {data?.content?.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Không có công việc nào.
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         )}
