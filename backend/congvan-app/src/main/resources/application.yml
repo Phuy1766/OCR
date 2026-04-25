@@ -77,6 +77,8 @@ app:
   ocr:
     service-url: http://${OCR_SERVICE_HOST:ocr-service}:${OCR_SERVICE_PORT:5000}
     internal-api-key: ${OCR_INTERNAL_API_KEY:}
+    timeout-seconds: ${OCR_TIMEOUT_SECONDS:60}
+    auto-trigger: ${OCR_AUTO_TRIGGER:true}
 
 logging:
   level:

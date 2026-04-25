@@ -25,12 +25,21 @@
             <artifactId>congvan-auth</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-inbound</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-integration</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- Spring 6 RestClient (đồng bộ, đơn giản hơn WebClient cho use case này). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -20,6 +20,7 @@ import {
 import { useAssignDocument } from '@/hooks/use-workflow';
 import { useAuthStore } from '@/stores/auth-store';
 import { ApiCallError } from '@/lib/api-client';
+import { OcrPanel } from '@/components/ocr-panel';
 
 export default function InboundDetailPage() {
   const params = useParams<{ id: string }>();
@@ -157,6 +158,8 @@ export default function InboundDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      <OcrPanel documentId={id} />
 
       {showAssign && (
         <Card>

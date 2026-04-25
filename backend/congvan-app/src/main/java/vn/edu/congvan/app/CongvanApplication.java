@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * Entry point của hệ thống quản lý công văn.
@@ -15,6 +16,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication(scanBasePackages = "vn.edu.congvan")
 @EntityScan("vn.edu.congvan")
 @EnableJpaRepositories("vn.edu.congvan")
+@EnableAsync
 public class CongvanApplication {
 
     public static void main(String[] args) {

@@ -10,12 +10,14 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.congvan.auth.security.AuthPrincipal;
 import vn.edu.congvan.auth.service.AuditLogger;
+import vn.edu.congvan.common.event.InboundDocumentRegisteredEvent;
 import vn.edu.congvan.common.exception.BusinessException;
 import vn.edu.congvan.inbound.dto.CreateInboundRequest;
 import vn.edu.congvan.inbound.dto.DocumentFileDto;
@@ -59,6 +61,7 @@ public class InboundDocumentService {
     private final MinioFileService minio;
     private final AuditLogger audit;
     private final OutboxRecorder outbox;
+    private final ApplicationEventPublisher events;
 
     /**
      * Đăng ký VB đến: validate → cấp số (BR-01/02) → lưu document → ghi entry sổ
@@ -235,6 +238,15 @@ public class InboundDocumentService {
                                                     today.toEpochDay() - received.toEpochDay()))
                             .build());
         }
+
+        // Publish event để OCR module subscribe và auto-trigger sau commit.
+        // Event listener phía OCR sẽ chạy với @TransactionalEventListener(AFTER_COMMIT).
+        var fileInfos = fileEntities.stream()
+                .map(f -> new InboundDocumentRegisteredEvent.FileInfo(
+                        f.getId(), f.getMimeType()))
+                .toList();
+        events.publishEvent(new InboundDocumentRegisteredEvent(
+                d.getId(), actor == null ? null : actor.userId(), fileInfos));
 
         return toDto(d, fileEntities);
     }
