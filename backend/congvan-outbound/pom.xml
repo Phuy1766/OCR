@@ -29,6 +29,14 @@
             <artifactId>congvan-masterdata</artifactId>
         </dependency>
         <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-inbound</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>vn.edu.congvan</groupId>
+            <artifactId>congvan-integration</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>

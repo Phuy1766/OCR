@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Inbox, Loader2, LogOut, Settings } from 'lucide-react';
+import { Inbox, Loader2, LogOut, Send, Settings } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useLogout, useMe } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
               >
                 <Inbox className="h-3.5 w-3.5" /> Công văn đến
+              </Link>
+            )}
+            {currentUser.permissions.some((p) => p.startsWith('OUTBOUND:')) && (
+              <Link
+                href="/dashboard/outbound"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <Send className="h-3.5 w-3.5" /> Công văn đi
               </Link>
             )}
             {currentUser.permissions.includes('MASTERDATA:MANAGE') && (

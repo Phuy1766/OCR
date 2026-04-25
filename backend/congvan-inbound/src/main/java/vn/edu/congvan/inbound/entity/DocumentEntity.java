@@ -93,6 +93,10 @@ public class DocumentEntity extends SoftDeletableEntity {
     @Column(name = "department_id")
     private UUID departmentId;
 
+    /** Version đã duyệt cuối — chốt khi LANH_DAO approve (BR-07). Phase 4. */
+    @Column(name = "approved_version_id")
+    private UUID approvedVersionId;
+
     @Column(name = "is_recalled", nullable = false)
     private boolean recalled = false;
 
