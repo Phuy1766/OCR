@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogOut, Settings } from 'lucide-react';
+import { Inbox, Loader2, LogOut, Settings } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useLogout, useMe } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/dashboard" className="text-sm font-semibold">
               Hệ thống quản lý công văn
             </Link>
+            {currentUser.permissions.some((p) => p.startsWith('INBOUND:')) && (
+              <Link
+                href="/dashboard/inbound"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <Inbox className="h-3.5 w-3.5" /> Công văn đến
+              </Link>
+            )}
             {currentUser.permissions.includes('MASTERDATA:MANAGE') && (
               <Link
                 href="/dashboard/admin/document-types"

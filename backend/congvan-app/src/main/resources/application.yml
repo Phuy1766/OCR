@@ -18,8 +18,9 @@ spring:
     validate-on-migrate: true
   servlet:
     multipart:
+      # Mỗi file ≤ 50MB (BR FileValidator). Tổng request đủ chỗ cho 4 file + JSON metadata.
       max-file-size: 50MB
-      max-request-size: 60MB
+      max-request-size: 220MB
   mvc:
     problemdetails:
       enabled: true

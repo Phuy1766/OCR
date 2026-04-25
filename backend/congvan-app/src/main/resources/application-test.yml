@@ -17,3 +17,12 @@ app:
   security:
     rate-limit:
       enabled: false
+  storage:
+    minio:
+      # Placeholder cho test không cần MinIO (smoke/auth/masterdata). Test thật
+      # cần MinIO sẽ override qua @DynamicPropertySource (xem InboundFlowIntegrationTest).
+      endpoint: http://minio-not-configured:9000
+      access-key: test_placeholder_key
+      secret-key: test_placeholder_secret
+      bucket-documents: congvan-test-documents
+      bucket-signed: congvan-test-signed
