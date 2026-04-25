@@ -2,12 +2,12 @@ name: ocr-ci
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
     paths:
       - 'ocr-service/**'
       - '.github/workflows/ocr-ci.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
     paths:
       - 'ocr-service/**'
       - '.github/workflows/ocr-ci.yml'

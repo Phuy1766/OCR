@@ -2,9 +2,9 @@ name: security-scan
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
   schedule:
     - cron: '0 2 * * 1'  # Thứ hai hàng tuần 02:00 UTC
 
