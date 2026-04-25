@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, Settings } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useLogout, useMe } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -37,7 +38,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-muted/30">
       <header className="border-b bg-background">
         <div className="container flex h-14 items-center justify-between">
-          <h1 className="text-sm font-semibold">Hệ thống quản lý công văn</h1>
+          <div className="flex items-center gap-6">
+            <Link href="/dashboard" className="text-sm font-semibold">
+              Hệ thống quản lý công văn
+            </Link>
+            {currentUser.permissions.includes('MASTERDATA:MANAGE') && (
+              <Link
+                href="/dashboard/admin/document-types"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <Settings className="h-3.5 w-3.5" /> Quản trị danh mục
+              </Link>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <div className="text-right text-xs leading-tight">
               <div className="font-medium">{currentUser.fullName}</div>
