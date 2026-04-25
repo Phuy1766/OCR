@@ -4,8 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowLeft, Download, FileText, Undo2 } from 'lucide-react';
+import { ArrowLeft, Download, FileText, Loader2, UserPlus, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +17,7 @@ import {
   useInboundDocument,
   useRecallInboundDocument,
 } from '@/hooks/use-inbound';
+import { useAssignDocument } from '@/hooks/use-workflow';
 import { useAuthStore } from '@/stores/auth-store';
 import { ApiCallError } from '@/lib/api-client';
 
@@ -24,9 +27,15 @@ export default function InboundDetailPage() {
   const id = params?.id ?? '';
   const { data, isLoading } = useInboundDocument(id);
   const recall = useRecallInboundDocument(id);
+  const assignMut = useAssignDocument(id);
   const canRecall = useAuthStore((s) => s.user?.permissions.includes('INBOUND:RECALL') ?? false);
+  const canAssign = useAuthStore((s) => s.user?.permissions.includes('WORKFLOW:ASSIGN') ?? false);
   const [reason, setReason] = useState('');
   const [confirmRecall, setConfirmRecall] = useState(false);
+  const [showAssign, setShowAssign] = useState(false);
+  const [assignUserId, setAssignUserId] = useState('');
+  const [assignDueDate, setAssignDueDate] = useState('');
+  const [assignNote, setAssignNote] = useState('');
 
   if (isLoading || !data) return <div className="text-sm text-muted-foreground">Đang tải…</div>;
 
@@ -76,15 +85,22 @@ export default function InboundDetailPage() {
               </CardDescription>
             )}
           </div>
-          {canRecall && !data.recalled && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setConfirmRecall(true)}
-            >
-              <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Thu hồi
-            </Button>
-          )}
+          <div className="flex flex-col gap-2">
+            {canAssign && data.status === 'REGISTERED' && !data.recalled && (
+              <Button size="sm" onClick={() => setShowAssign(true)}>
+                <UserPlus className="mr-1.5 h-3.5 w-3.5" /> Phân công
+              </Button>
+            )}
+            {canRecall && !data.recalled && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setConfirmRecall(true)}
+              >
+                <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Thu hồi
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <dl className="grid gap-3 text-sm md:grid-cols-2">
@@ -141,6 +157,81 @@ export default function InboundDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {showAssign && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Phân công xử lý</CardTitle>
+            <CardDescription>
+              Chỉ định chuyên viên xử lý + hạn xử lý. Người được giao sẽ nhận thông báo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <Label htmlFor="assignee">User ID người được giao *</Label>
+                <Input
+                  id="assignee"
+                  placeholder="UUID của chuyên viên"
+                  value={assignUserId}
+                  onChange={(e) => setAssignUserId(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Phase 5 cần nhập UUID. Phase 6+ sẽ có user picker.
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="duedate">Hạn xử lý</Label>
+                <Input
+                  id="duedate"
+                  type="date"
+                  value={assignDueDate}
+                  onChange={(e) => setAssignDueDate(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="note">Ghi chú</Label>
+              <Textarea
+                id="note"
+                rows={2}
+                value={assignNote}
+                onChange={(e) => setAssignNote(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAssign(false)}>
+                Hủy
+              </Button>
+              <Button
+                disabled={!assignUserId || assignMut.isPending}
+                onClick={async () => {
+                  try {
+                    await assignMut.mutateAsync({
+                      assignedToUserId: assignUserId,
+                      dueDate: assignDueDate || undefined,
+                      note: assignNote || undefined,
+                    });
+                    toast.success('Đã phân công');
+                    setShowAssign(false);
+                    setAssignUserId('');
+                    setAssignDueDate('');
+                    setAssignNote('');
+                    router.refresh();
+                  } catch (err) {
+                    toast.error(
+                      err instanceof ApiCallError ? err.message : 'Phân công thất bại.',
+                    );
+                  }
+                }}
+              >
+                {assignMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Xác nhận phân công
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {confirmRecall && (
         <Card>

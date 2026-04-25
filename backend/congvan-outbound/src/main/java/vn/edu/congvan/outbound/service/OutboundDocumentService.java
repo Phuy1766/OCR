@@ -31,6 +31,7 @@ import vn.edu.congvan.inbound.repository.DocumentFileRepository;
 import vn.edu.congvan.inbound.repository.DocumentRepository;
 import vn.edu.congvan.inbound.service.FileValidator;
 import vn.edu.congvan.inbound.service.UploadedFile;
+import vn.edu.congvan.integration.outbox.OutboxRecorder;
 import vn.edu.congvan.integration.storage.MinioFileService;
 import vn.edu.congvan.integration.storage.StoredObject;
 import vn.edu.congvan.masterdata.entity.BookType;
@@ -73,6 +74,7 @@ public class OutboundDocumentService {
     private final FileValidator fileValidator;
     private final MinioFileService minio;
     private final AuditLogger audit;
+    private final OutboxRecorder outbox;
     private final ObjectMapper json;
 
     @Transactional
@@ -201,6 +203,13 @@ public class OutboundDocumentService {
                 "SUBMIT_OUTBOUND",
                 "documents",
                 documentId.toString());
+        outbox.record(outbox.event("documents", documentId.toString(), "OutboundSubmitted")
+                .routingKey("document.outbound.submitted")
+                .payload(outbox.map(
+                        "documentId", documentId.toString(),
+                        "submittedBy", actor == null ? null : actor.userId().toString(),
+                        "departmentId", d.getDepartmentId() == null ? null : d.getDepartmentId().toString()))
+                .build());
         return getById(documentId, actor);
     }
 
@@ -268,6 +277,14 @@ public class OutboundDocumentService {
                                     "version_number", latest.getVersionNumber(),
                                     "hash_sha256", hash))
                             .build());
+            outbox.record(outbox.event("documents", documentId.toString(), "OutboundApproved")
+                    .routingKey("document.outbound.approved")
+                    .payload(outbox.map(
+                            "documentId", documentId.toString(),
+                            "approvedVersionId", latest.getId().toString(),
+                            "versionNumber", latest.getVersionNumber(),
+                            "hash", hash))
+                    .build());
         } else {
             latest.setVersionStatus(VersionStatus.REJECTED);
             versions.save(latest);
@@ -323,6 +340,14 @@ public class OutboundDocumentService {
                                 "book_year", reserved.year(),
                                 "book_number", reserved.number()))
                         .build());
+        outbox.record(outbox.event("documents", documentId.toString(), "OutboundIssued")
+                .routingKey("document.outbound.issued")
+                .payload(outbox.map(
+                        "documentId", documentId.toString(),
+                        "bookId", book.getId().toString(),
+                        "bookYear", reserved.year(),
+                        "bookNumber", reserved.number()))
+                .build());
         return getById(documentId, actor);
     }
 

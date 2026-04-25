@@ -3,10 +3,11 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Inbox, Loader2, LogOut, Send, Settings } from 'lucide-react';
+import { ClipboardList, Inbox, Loader2, LogOut, Send, Settings } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useLogout, useMe } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
+import { NotificationBell } from '@/components/notification-bell';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -58,6 +59,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Send className="h-3.5 w-3.5" /> Công văn đi
               </Link>
             )}
+            {currentUser.permissions.includes('WORKFLOW:HANDLE') && (
+              <Link
+                href="/dashboard/tasks"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ClipboardList className="h-3.5 w-3.5" /> Công việc
+              </Link>
+            )}
             {currentUser.permissions.includes('MASTERDATA:MANAGE') && (
               <Link
                 href="/dashboard/admin/document-types"
@@ -68,6 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <div className="text-right text-xs leading-tight">
               <div className="font-medium">{currentUser.fullName}</div>
               <div className="text-muted-foreground">{currentUser.roles.join(', ')}</div>

@@ -1,9 +1,14 @@
 spring:
   flyway:
     enabled: true
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+  rabbitmq:
+    # Test mặc định trỏ vào host:port không tồn tại — các test không cần MQ
+    # vẫn boot lên được vì RabbitTemplate là lazy. Test cần MQ thật override
+    # qua @DynamicPropertySource (xem AssignmentFlowIntegrationTest).
+    host: rabbitmq-not-configured
+    port: 5672
+    username: test
+    password: test
 
 app:
   jwt:
@@ -26,3 +31,6 @@ app:
       secret-key: test_placeholder_secret
       bucket-documents: congvan-test-documents
       bucket-signed: congvan-test-signed
+  outbox:
+    # Disable outbox publisher mặc định — test cần outbox sẽ override.
+    enabled: false

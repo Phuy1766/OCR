@@ -30,6 +30,7 @@ import vn.edu.congvan.inbound.entity.DocumentStatus;
 import vn.edu.congvan.inbound.repository.DocumentBookEntryRepository;
 import vn.edu.congvan.inbound.repository.DocumentFileRepository;
 import vn.edu.congvan.inbound.repository.DocumentRepository;
+import vn.edu.congvan.integration.outbox.OutboxRecorder;
 import vn.edu.congvan.integration.storage.MinioFileService;
 import vn.edu.congvan.integration.storage.StoredObject;
 import vn.edu.congvan.masterdata.entity.BookType;
@@ -57,6 +58,7 @@ public class InboundDocumentService {
     private final FileValidator fileValidator;
     private final MinioFileService minio;
     private final AuditLogger audit;
+    private final OutboxRecorder outbox;
 
     /**
      * Đăng ký VB đến: validate → cấp số (BR-01/02) → lưu document → ghi entry sổ
@@ -193,7 +195,7 @@ public class InboundDocumentService {
             fileEntities.add(files.save(fe));
         }
 
-        // Audit
+        // Audit + outbox event
         audit.logSuccess(
                 actor == null ? null : actor.userId(),
                 actor == null ? null : actor.username(),
@@ -201,6 +203,16 @@ public class InboundDocumentService {
                 "REGISTER_INBOUND_DOCUMENT",
                 "documents",
                 d.getId().toString());
+
+        outbox.record(outbox.event("documents", d.getId().toString(), "InboundDocumentRegistered")
+                .routingKey("document.inbound.registered")
+                .payload(outbox.map(
+                        "documentId", d.getId().toString(),
+                        "subject", d.getSubject(),
+                        "bookId", book.getId().toString(),
+                        "bookYear", reserved.year(),
+                        "bookNumber", reserved.number()))
+                .build());
 
         if (lateRegistration) {
             // BR-05: ghi audit warning khi đăng ký trễ.
@@ -325,6 +337,14 @@ public class InboundDocumentService {
                         .success(true)
                         .extra(Map.of("reason", reason))
                         .build());
+
+        outbox.record(outbox.event("documents", d.getId().toString(), "InboundDocumentRecalled")
+                .routingKey("document.inbound.recalled")
+                .payload(outbox.map(
+                        "documentId", d.getId().toString(),
+                        "reason", reason,
+                        "recalledBy", actor == null ? null : actor.userId().toString()))
+                .build());
     }
 
     private InboundDocumentDto toDto(DocumentEntity d, List<DocumentFileEntity> fs) {
